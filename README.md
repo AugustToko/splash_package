@@ -12,6 +12,7 @@ To use this plugin, add splash_package as a dependency in your pubspec.yaml file
 The color can be set with the splashColor property. The splash size is dependent on the size of the child widget passed in - which is constrained by the minRadius and maxRadius parameters.
 
 ### Example
+```dart
 import 'package:flutter/material.dart';
 import 'package:splash_package/splash_package.dart';
 
@@ -46,3 +47,4 @@ class SplashTapDemo extends StatelessWidget {
     );
   }
 }
+```
