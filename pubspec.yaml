@@ -1,0 +1,11 @@
+name: splash_package
+description: To make splash effect on click.
+version: 0.0.1
+homepage: https://github.com/ars27196/splash_package
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
