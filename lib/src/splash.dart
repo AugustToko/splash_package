@@ -6,14 +6,12 @@ class Splash extends StatefulWidget {
   /// The [child] parameter can not be null.
   /// The tap is disabled if the [onTap] parameter is null.
   Splash({
-    Key key,
-    @required this.child,
-    this.splashColor,
+    Key? key,
+    required this.child,
+    required this.splashColor,
     this.minRadius = defaultMinRadius,
     this.maxRadius = defaultMaxRadius,
-  })  : assert(minRadius != null),
-        assert(maxRadius != null),
-        assert(minRadius > 0),
+  })  : assert(minRadius > 0),
         assert(minRadius < maxRadius),
         super(key: key);
 
@@ -48,35 +46,29 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
-  AnimationController controller;
-  Tween<double> radiusTween;
-  Tween<double> borderWidthTween;
-  Animation<double> radiusAnimation;
-  Animation<double> borderWidthAnimation;
-  AnimationStatus status;
-  Offset _tapPosition;
+  late AnimationController controller =
+      AnimationController(vsync: this, duration: Duration(milliseconds: 350))
+        ..addStatusListener((AnimationStatus listener) {
+          status = listener;
+        });
 
-  @override
-  void initState() {
-    controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 350))
-          ..addStatusListener((AnimationStatus listener) {
-            status = listener;
-          });
-    radiusTween = Tween<double>(begin: 0, end: 50);
-    radiusAnimation = radiusTween
-        .animate(CurvedAnimation(curve: Curves.ease, parent: controller));
+  final radiusTween = Tween<double>(begin: 0, end: 50);
 
-    borderWidthTween = Tween<double>(begin: 25, end: 1);
-    borderWidthAnimation = borderWidthTween.animate(
-        CurvedAnimation(curve: Curves.fastOutSlowIn, parent: controller));
+  final borderWidthTween = Tween<double>(begin: 25, end: 1);
 
-    super.initState();
-  }
+  late Animation<double> radiusAnimation = radiusTween
+      .animate(CurvedAnimation(curve: Curves.ease, parent: controller));
 
-  void _animate() {
-    controller.forward(from: 0);
-  }
+  late Animation<double> borderWidthAnimation = borderWidthTween.animate(
+      CurvedAnimation(curve: Curves.fastOutSlowIn, parent: controller));
+
+  AnimationStatus? status;
+  Offset _tapPosition = Offset(0, 0);
+
+  bool show = false;
+  Offset lastVal = Offset(0, 0);
+
+  void _animate() => controller.forward(from: 0);
 
   @override
   void dispose() {
@@ -85,7 +77,12 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
   }
 
   void _handleTap(PointerUpEvent tapDetails) {
-    final RenderBox renderBox = context.findRenderObject();
+    final renderObj = context.findRenderObject();
+    if (renderObj == null || !(renderObj is RenderBox)) {
+      return;
+    }
+
+    final RenderBox renderBox = renderObj;
     _tapPosition = renderBox.globalToLocal(tapDetails.position);
     final double radius = (renderBox.size.width > renderBox.size.height)
         ? renderBox.size.width
@@ -101,13 +98,10 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
     }
 
     radiusTween.end = constraintRadius * 0.6;
-    borderWidthTween.begin = radiusTween.end / 5;
-    borderWidthTween.end = radiusTween.end * 0.01;
+    borderWidthTween.begin = radiusTween.end! / 5;
+    borderWidthTween.end = radiusTween.end! * 0.01;
     _animate();
   }
-
-  bool show = false;
-  Offset lastVal = Offset(0, 0);
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +114,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
               borderWidth: borderWidthAnimation.value,
               status: status,
               tapPosition: _tapPosition,
-              color: widget.splashColor ?? Colors.black,
+              color: widget.splashColor,
             ),
             child: Listener(
               behavior: HitTestBehavior.opaque,
@@ -130,9 +124,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                 if (event.position.dy != lastVal.dy ||
                     event.position.dx != lastVal.dx) {
                   show = false;
-                  setState(() {
-
-                  });
+                  setState(() {});
                 }
               },
               onPointerDown: (event) {
@@ -148,11 +140,11 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
 
 class _SplashPaint extends CustomPainter {
   _SplashPaint({
-    @required this.radius,
-    @required this.borderWidth,
-    @required this.status,
-    @required this.tapPosition,
-    @required this.color,
+    required this.radius,
+    required this.borderWidth,
+    required this.status,
+    required this.tapPosition,
+    required this.color,
   }) : blackPaint = Paint()
           ..color = color
           ..style = PaintingStyle.stroke
@@ -160,7 +152,7 @@ class _SplashPaint extends CustomPainter {
 
   final double radius;
   final double borderWidth;
-  final AnimationStatus status;
+  final AnimationStatus? status;
   final Offset tapPosition;
   final Color color;
   final Paint blackPaint;
